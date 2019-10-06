@@ -22,12 +22,22 @@ def role(person):
     pass
 
 
-# How much the 1st person likes the 2nd person - May be negative.
+# How much 1st person likes 2nd person - May be negative.
 def preferance(p1, p2):
     pass
 
 
 # Determine Scoring
+'''
+	- 1 point for every adjacent pair (seated next to 
+		each other) of people with one a host and the 
+		other a guest.
+	- 2 points for every opposite pair (seated across
+		from each other) of people with one a host and
+		the other a guest.
+	- h(p1, p2) + h(p2, p1) points for every adjacent 
+		or opposite pair of people p1, p2.
+'''
 def scoring(data):
     pass
 
