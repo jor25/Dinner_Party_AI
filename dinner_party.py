@@ -74,12 +74,15 @@ def role(person, num):
 	else:				# Not host ie a Guest
 		return False
 
-#
-def score_roles(p1, p2, num):
+# Return scores for roles
+def score_roles(p1, p2, num, opp):
 	if role(p1, num) == role(p2, num):	# If they're the same roles
-		return 1
+		return 0
 	else:						# If they're different roles
-		return 2
+		if opp:					# If opposite of each other
+			return 2
+		else:					# They're next to each other
+			return 1
 
 
 # How much 1st person likes 2nd person - May be negative.
@@ -100,6 +103,7 @@ def preferance(p1, p2, pref):
 '''
 def scoring(s_tab, pref_tab, num_p):
 	score = 0
+	r_score = 0
 
 	# Loop through the table
 	for i in range(2):
@@ -109,11 +113,16 @@ def scoring(s_tab, pref_tab, num_p):
 			if i == 0:
 				# pref of i+1
 				score += preferance(s_tab[i][j], s_tab[i+1][j], pref_tab)
-				# Check role
+				# Check ROLE num_p/2 times for opposite pairs
+				r_score += score_roles(s_tab[i][j], s_tab[i+1][j], num_p, True)	# opps
+
 			else:
 				# pref of i-1
 				score += preferance(s_tab[i][j], s_tab[i-1][j], pref_tab)
-				# Check role
+
+			# Check ROLE for sitting adjacent (to the right) - num_p/2 -1
+			if j < num_p/2 - 1:
+				r_score += score_roles(s_tab[i][j], s_tab[i][j+1], num_p, False)	# adjs
 
 			# Deal with sitting on sides
 			if j == 0 or j == int(num_p/2 - 1):	# at the corners
@@ -129,8 +138,10 @@ def scoring(s_tab, pref_tab, num_p):
 				# Get pref of left and right	
 				score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)	# left
 				score += preferance(s_tab[i][j], s_tab[i][j+1], pref_tab)	# right
-	
-	print("Final Score: ", score)
+
+	print("Role Score: ", r_score)
+	print("Pref Score: ", score)
+	print("Final Score: ", score + r_score)
 
 
 if __name__== "__main__" :
