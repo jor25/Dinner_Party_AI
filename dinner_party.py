@@ -13,6 +13,11 @@
 # Date: 10-5-19
 #
 
+# Read the text file data into 2d array
+def read_data():
+	pass
+
+
 def main():
     pass
 
