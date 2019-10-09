@@ -28,20 +28,32 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
 	# Numpy read in my data - separate by space, skip row 1, all ints.	
 	data = np.loadtxt(data_file, delimiter=" ", skiprows=1, dtype=int)
 	num_p = len(data)
-	print(data)
-	print(num_p)
+	#print(data)
+	#print(num_p)
 	
 	return data, num_p
 
 
+# Display the scoring in the correct format, then prepare to write out data
+def display_scores(score, table, num_p):	
+	print("Table Score: ", score)
+	count = 1
+	
+	# Loop through the table
+	for i in range(2):
+		for j in range (int(num_p/2)):
+			# Display current index
+			print("p{} s{}".format(int(table[i][j]), count))	# Person# seat#
+			count += 1
+	
+
 # Run the stuff
 def main():
-	pref, num_p = read_data() # Create Pref table and num people
-	table_seats = np.zeros((2, int(num_p/2)))	# Table
-	s_table = rand_agent(num_p, table_seats)
-	scoring(s_table, pref, num_p)	
-
-	pass
+	pref, num_p = read_data() 						# Create Pref table and num people
+	table_seats = np.zeros((2, int(num_p/2)))		# Table
+	s_table = rand_agent(num_p, table_seats)		# Seated table
+	table_score = scoring(s_table, pref, num_p)		# Score of seated table
+	display_scores(table_score, s_table, num_p)		# Output of seated table score
 
 
 # Randomly place people at the table for the standard.
@@ -139,12 +151,12 @@ def scoring(s_tab, pref_tab, num_p):
 				score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)	# left
 				score += preferance(s_tab[i][j], s_tab[i][j+1], pref_tab)	# right
 
-	print("Role Score: ", r_score)
-	print("Pref Score: ", score)
-	print("Final Score: ", score + r_score)
+	#print("Role Score: ", r_score)
+	#print("Pref Score: ", score)
+	#print("Final Score: ", score + r_score)
+	return score + r_score
 
 
 if __name__== "__main__" :
 	main()
-	#read_data()
 
