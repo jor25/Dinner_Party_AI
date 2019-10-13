@@ -17,10 +17,11 @@
 # Installs "pip3 install <package>"
 # Resources:
 # 	- https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html
-#
+#	- https://docs.scipy.org/doc/numpy/reference/generated/numpy.isin.html
 
 import numpy as np
 import random as rand
+import time
 
 # Read the text file data into 2d array. Give back 2d array and num.
 def read_data(data_file="data_insts/hw1-inst1.txt"):
@@ -28,7 +29,7 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
 	# Numpy read in my data - separate by space, skip row 1, all ints.	
 	data = np.loadtxt(data_file, delimiter=" ", skiprows=1, dtype=int)
 	num_p = len(data)
-	#print(data)
+	print(data)
 	#print(num_p)
 	
 	return data, num_p
@@ -50,10 +51,27 @@ def display_scores(score, table, num_p):
 # Run the stuff
 def main():
 	pref, num_p = read_data() 						# Create Pref table and num people
-	table_seats = np.zeros((2, int(num_p/2)))		# Table
-	s_table = rand_agent(num_p, table_seats)		# Seated table
-	table_score = scoring(s_table, pref, num_p)		# Score of seated table
-	display_scores(table_score, s_table, num_p)		# Output of seated table score
+
+	high_score = -10000			# I know, I know
+	fin_table_seats = np.zeros((2, int(num_p/2)))		# Final Table
+	time_left = 60				# 60 seconds
+	start_time = time.time()	# Start time
+
+
+	while time.time() < start_time + time_left:			# Loop while in 60 seconds
+		table_seats = np.zeros((2, int(num_p/2)))		# Table
+		#s_table = rand_agent(num_p, table_seats)		# Seated table
+
+		#s_table = max_agent(num_p, table_seats, pref)	# TESTING
+		s_table = agent_3(num_p, table_seats, pref)	# TESTING
+
+		table_score = scoring(s_table, pref, num_p)		# Score of seated table
+		
+		if table_score > high_score:
+			high_score = table_score	# update highest values
+			fin_table_seats = s_table
+	display_scores(high_score, fin_table_seats, num_p)		# Output of seated table score
+	#display_scores(high_score, s_table, num_p)		# Output of seated table score
 
 
 # Randomly place people at the table for the standard.
@@ -77,6 +95,300 @@ def rand_agent(num_p, table):
 	# Give back the table
 	return table	
 	
+
+# Selective Agent - take best points in each
+def max_agent(num_p, table, pref):
+	unseated = list(range(num_p))	# Create list from 0 - num_p
+	#print(unseated)
+	
+	# Select guest or host first
+	goh = rand.randint(0, 1)	# 0 is guest, 1 is host
+	cut_off = int(num_p/2)
+
+	# Loop through the table
+	for i in range(2):
+		for j in range (int(num_p/2)):
+			# Agent select random index from unseated list
+			if i == 0 and j == 0:	# Place random first person
+				table[i][j] = unseated[rand.randint(0, len(unseated) - 1)]
+				if table[i][j] > cut_off:	# then guest
+					goh = 0
+				else:
+					goh = 1	# Then host	
+				#else:	# Place based on how much next person likes previous
+				table[i][j] = take_max(pref, table[i][j-1], unseated, cut_off, goh)			
+
+				if table[i][j] > cut_off:	# then guest
+					goh = 0
+				else:
+					goh = 1	# Then host	
+
+			# Remove the specified value from unseated list
+			unseated.remove(table[i][j]) # remove element by value
+			#print(unseated)
+			#print(table)
+
+	print(table) # Display seating chart
+
+	# Give back the table
+	return table
+
+# Get the top 3 or 4 max values
+# https://stackoverflow.com/questions/6910641/how-do-i-get-indices-of-n-maximum-values-in-a-numpy-array
+def take_max(pref, prev_tab_val, unseated, cut_off, goh):
+	g_op = []
+	h_op = []
+	options = []
+	print("-------------------------------------------------")	
+	for p in unseated:
+		if p < cut_off: 	# if host and p is less than the cut off
+			h_op.append(p)
+		else:
+			g_op.append(p) 
+		ind = np.argpartition(pref[p], -4)[-4:]	# TEST - top 4 most liked people
+		fav = np.argmax(pref[p])
+		p_sum = np.sum(pref[p][ind])	# Sum of the top 4 values - how much they like people
+		all_sum = np.sum(pref[p])		# Sum of all in the row - how much they like people in general
+		
+		print("p: {}\tfav people: {}\tpref vals: {}\tval_sums: {}\tall_sum: {}\tfav_p: {}".format(p, ind, pref[p][ind], p_sum, all_sum, fav))
+		#print("p: {}\tmax: {}".format(p, np.argmax(pref[p])))
+		
+		if prev_tab_val in ind:	# if unseated person likes the last seated person
+			options.append(p)	# add person to options
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Agent Algorithm 3
+def agent_3(num_p, table, pref):
+	unseated = list(range(num_p))	# Create list from 0 - num_p
+	#print(unseated)
+	
+	# Select guest or host first
+	goh = rand.randint(0, 1)	# 0 is guest, 1 is host
+	cut_off = int(num_p/2)
+
+	# Place first person
+	table[0][0] = unseated[rand.randint(0, len(unseated) - 1)]
+	unseated.remove(table[0][0]) # remove element by value
+	print(table[0][0])	
+
+
+	# Loop through the table
+	for j in range (int(num_p/2)-1):
+		# Place person below and to the right
+		if j == 0:	# place at bottom once
+			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, cut_off, goh)	# below
+			unseated.remove(table[1][j]) # remove bottom element by value
+	
+		if j != cut_off:
+			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, cut_off, goh)	# right
+			# Remove the specified value from unseated list
+			unseated.remove(table[0][j+1]) # remove right side element by value
+
+		print(table)
+
+		table[1][j+1] = place_corner(pref, int(table[0][j+1]), int(table[1][j]), unseated)
+		unseated.remove(table[1][j+1]) # remove right side element by value
+		print(table)
+		#print(unseated)
+		#print(table)
+
+	print(table) # Display seating chart
+
+	# Give back the table
+	return table
+
+
+
+def place_bot_and_side(pref, cur_per, unseated, cut_off, goh):
+	
+	print("-------------------------------------------------")
+	options = []
+	index = 0
+
+	# The current person's favorite 4 people.
+	cur_fav = np.argpartition(pref[cur_per], -4)[-4:]	# Their top 4 most liked people
+
+	# Get the overlap between favorites and those unseated
+	mask = np.isin(cur_fav, unseated)
+	cur_fav_remaining = cur_fav[mask]
+	
+	print("REMAINING ", cur_fav_remaining)
+
+
+
+	cur_pref_val = pref[cur_per][cur_fav_remaining]	# Their corresponding pref values
+	if cur_per < cut_off:	# Means they are a host
+		cur_role = "host"
+		goh = 0	# Host
+	else:
+		cur_role = "guest"
+		goh = 1	# Guest
+
+	print("cur_p: {}\tcur_4_fav_people: {}\tcur_pref_vals: {}\tcur_role: {}".format(cur_per, cur_fav_remaining, cur_pref_val, cur_role))	
+	if len(cur_fav_remaining) == 0:	# Empty list, then we go through everyone
+		# Loop through all people
+		cur_pref_val = pref[cur_per][unseated]
+		for p in unseated:
+			pref_for_cur = pref[p][cur_per]	# How person p feels about cur
+
+			if p < cut_off:	# Means they are host
+				p_role = "host"
+				p_goh = 0
+			else:	
+				p_role = "guest"
+				p_goh = 1
+
+			print ("p: {}\tp_pref_for_cur: {}\tp_role: {}".format(p, pref_for_cur, p_role))
+
+			# Add the results
+			cur_pref_val[index] += pref_for_cur	# How much p likes cur
+
+			if goh != p_goh:				# Diff, therefore points
+				cur_pref_val[index] += 2	# Add two points for opps
+		
+			index += 1	# Increment index
+
+		# Display total of how much they like each other
+		print("cur_fav_people: {}\toverall_pref_vals: {}".format(cur_fav_remaining, cur_pref_val))
+	
+		# Best Choice
+		bc_index = np.argmax(cur_pref_val)
+		best_choice = unseated[bc_index]
+
+
+		print("Seat p: {}".format(best_choice))
+		return best_choice
+
+
+	else:
+		# Loop through cur's fav people and see how they feel about cur
+		for p in cur_fav_remaining:
+			pref_for_cur = pref[p][cur_per]	# How person p feels about cur
+
+			if p < cut_off:	# Means they are host
+				p_role = "host"
+				p_goh = 0
+			else:	
+				p_role = "guest"
+				p_goh = 1
+
+			print ("p: {}\tp_pref_for_cur: {}\tp_role: {}".format(p, pref_for_cur, p_role))
+
+			# Add the results
+			cur_pref_val[index] += pref_for_cur	# How much p likes cur
+
+			if goh != p_goh:				# Diff, therefore points
+				cur_pref_val[index] += 2	# Add two points for opps
+		
+			index += 1	# Increment index
+
+		# Display total of how much they like each other
+		print("cur_fav_people: {}\toverall_pref_vals: {}".format(cur_fav_remaining, cur_pref_val))
+	
+		# Best Choice
+		bc_index = np.argmax(cur_pref_val)
+		best_choice = cur_fav_remaining[bc_index]
+
+
+		print("Seat p: {}".format(best_choice))
+		return best_choice
+
+
+	'''	
+	for p in unseated:
+		ind = np.argpartition(pref[p], -4)[-4:]	# TEST - top 4 most liked people
+		fav = np.argmax(pref[p])
+		p_sum = np.sum(pref[p][ind])	# Sum of the top 4 values - how much they like people
+		all_sum = np.sum(pref[p])		# Sum of all in the row - how much they like people in general
+		
+		print("p: {}\tfav people: {}\tpref vals: {}\tval_sums: {}\tall_sum: {}\tfav_p: {}".format(p, ind, pref[p][ind], p_sum, all_sum, fav))
+		#print("p: {}\tmax: {}".format(p, np.argmax(pref[p])))
+		
+		if prev_tab_val in ind:	# if unseated person likes the last seated person
+			options.append(p)	# add person to options
+
+	'''
+
+def place_corner(pref, cur1, cur2, unseated):
+
+	index = 0
+	# The current person's favorite 4 people.
+	cur1_fav = np.argpartition(pref[cur1], -4)[-4:]	# Their top 4 most liked people
+	cur1_pref_val = pref[cur1][cur1_fav]	# Their corresponding pref values
+
+
+	cur2_fav = np.argpartition(pref[cur2], -4)[-4:]	# Their top 4 most liked people
+	cur2_pref_val = pref[cur2][cur2_fav]	# Their corresponding pref values
+
+	mask = np.isin(cur1_fav, cur2_fav)
+
+	cur_mutual_fav = cur1_fav[mask]
+	print("cur1: {}\tcur2: {}\tcur_mutual: {}".format(cur1_fav, cur2_fav, cur_mutual_fav))
+	
+	mask2 = np.isin(cur_mutual_fav, unseated)
+	cur_mutual_fav_remaining = cur_mutual_fav[mask2]
+
+	print("remaining: {}\tlen: {}".format(cur_mutual_fav_remaining, len(cur_mutual_fav_remaining)))
+
+	if len(cur_mutual_fav_remaining) == 0:	# If no mutual friends
+		# Look through all unseated
+		pref_totals = np.zeros(len(unseated))
+		cur1_fav = pref[cur1][unseated]
+		cur2_fav = pref[cur2][unseated]
+		for p in unseated:
+			pref_for_c1 = pref[p][cur1]
+			pref_for_c2 = pref[p][cur2]
+
+			pref_sum = cur1_fav[index] + cur2_fav[index] + pref_for_c1 + pref_for_c2
+			pref_totals[index] = pref_sum
+			index += 1
+
+		bc_index = np.argmax(pref_totals)
+		best_choice = unseated[bc_index]
+		return best_choice
+
+	else:
+
+		pref_totals = np.zeros(len(cur_mutual_fav_remaining))
+		cur1_fav = pref[cur1][cur_mutual_fav_remaining]
+		cur2_fav = pref[cur2][cur_mutual_fav_remaining]
+		for p in cur_mutual_fav_remaining:
+			pref_for_c1 = pref[p][cur1]
+			pref_for_c2 = pref[p][cur2]
+
+			pref_sum = cur1_fav[index] + cur2_fav[index] + pref_for_c1 + pref_for_c2
+			pref_totals[index] = pref_sum
+			index += 1
+
+		bc_index = np.argmax(pref_totals)
+		best_choice = unseated[bc_index]
+		return best_choice
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Return the role of the person - host or guest?
