@@ -35,18 +35,29 @@ def read_data(data_file="data_insts/hw1-inst2.txt"):
 	return data, num_p
 
 
+
 # Display the scoring in the correct format, then prepare to write out data
 def display_scores(score, table, num_p):	
-	print("Table Score: ", score)
-	count = 1
+	fout = open("output_testfile.txt", "w")	# Output file
+	line = "Table Score: {}".format(score)	# Standard line to write to file
+	#print("Table Score: ", score)
+	print(line)					# Display line
+	fout.write(line + "\n")		# Write to the file
+
+	count = 1	# Initialize a count at one
 	
 	# Loop through the table
 	for i in range(2):
 		for j in range (int(num_p/2)):
 			# Display current index
-			print("p{} s{}".format(int(table[i][j]), count))	# Person# seat#
+			#print("p{} s{}".format(int(table[i][j]), count))	# Person# seat#
+			line = "p{} s{}".format(int(table[i][j]), count)	# Person num & Seat num
+			print(line)
+			fout.write(line + "\n")				# Write to the file
 			count += 1
 	
+	fout.close()		# Close the file
+
 
 # Run the stuff
 def main():
