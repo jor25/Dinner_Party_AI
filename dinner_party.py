@@ -24,7 +24,7 @@ import random as rand
 import time
 
 # Read the text file data into 2d array. Give back 2d array and num.
-def read_data(data_file="data_insts/hw1-inst2.txt"):
+def read_data(data_file="data_insts/hw1-inst1.txt"):
 	
 	# Numpy read in my data - separate by space, skip row 1, all ints.	
 	data = np.loadtxt(data_file, delimiter=" ", skiprows=1, dtype=int)
@@ -80,6 +80,7 @@ def main():
 		if table_score > high_score:
 			high_score = table_score	# update highest values
 			fin_table_seats = s_table
+			print("Current Highest Table Score: ", high_score)
 	display_scores(high_score, fin_table_seats, num_p)		# Output of seated table score
 	#display_scores(high_score, s_table, num_p)		# Output of seated table score
 
@@ -259,7 +260,6 @@ def place_corner(pref, cur1, cur2, unseated):
 	cur2_pref_val = pref[cur2][cur2_fav]	# Their corresponding pref values
 
 	mask = np.isin(cur1_fav, cur2_fav)
-
 	cur_mutual_fav = cur1_fav[mask]
 	#print("cur1: {}\tcur2: {}\tcur_mutual: {}".format(cur1_fav, cur2_fav, cur_mutual_fav))
 	
@@ -281,9 +281,9 @@ def place_corner(pref, cur1, cur2, unseated):
 			pref_totals[index] = pref_sum
 			index += 1
 
-		bc_index = np.argmax(pref_totals)
-		best_choice = unseated[bc_index]
-		return best_choice
+		#bc_index = np.argmax(pref_totals)
+		#best_choice = unseated[bc_index]
+		#return best_choice
 
 	else:
 
@@ -298,9 +298,14 @@ def place_corner(pref, cur1, cur2, unseated):
 			pref_totals[index] = pref_sum
 			index += 1
 
-		bc_index = np.argmax(pref_totals)
-		best_choice = unseated[bc_index]
-		return best_choice
+		#bc_index = np.argmax(pref_totals)
+		#best_choice = unseated[bc_index]
+		#return best_choice
+
+
+	bc_index = np.argmax(pref_totals)
+	best_choice = unseated[bc_index]
+	return best_choice
 
 
 
@@ -341,25 +346,34 @@ def preferance(p1, p2, pref):
 def scoring(s_tab, pref_tab, num_p):
 	score = 0
 	r_score = 0
+	
+	# For sanity check
+	r_count = 0		# Check how many roles calculated - 13 for n=10
+	s_count = 0 	# Check how many scores calculated - 26 for n=10
+
 
 	# Loop through the table
-	for i in range(2):
-		for j in range (int(num_p/2)):
+	for i in range(2):						# Top and bottom
+		for j in range (int(num_p/2)):		# Left to right
 			# Deal with sitting across
-			# if top of table
-			if i == 0:
+			if i == 0:		#  Top of table
 				# pref of i+1
-				score += preferance(s_tab[i][j], s_tab[i+1][j], pref_tab)
+				score += preferance(s_tab[i][j], s_tab[i+1][j], pref_tab)	# Get score from top to bottom
 				# Check ROLE num_p/2 times for opposite pairs
-				r_score += score_roles(s_tab[i][j], s_tab[i+1][j], num_p, True)	# opps
+				r_score += score_roles(s_tab[i][j], s_tab[i+1][j], num_p, True)	# opps - role once
+				r_count += 1 # Sanity check
 
-			else:
+			else:	# Bottom of table
 				# pref of i-1
-				score += preferance(s_tab[i][j], s_tab[i-1][j], pref_tab)
+				score += preferance(s_tab[i][j], s_tab[i-1][j], pref_tab)	# Get score from bottom to top
 
+			s_count += 1	# Sanity check
+		
 			# Check ROLE for sitting adjacent (to the right) - num_p/2 -1
 			if j < num_p/2 - 1:
 				r_score += score_roles(s_tab[i][j], s_tab[i][j+1], num_p, False)	# adjs
+				r_count += 1 # Sanity check
+
 
 			# Deal with sitting on sides
 			if j == 0 or j == int(num_p/2 - 1):	# at the corners
@@ -371,14 +385,21 @@ def scoring(s_tab, pref_tab, num_p):
 					# get pref of person left
 					score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)
 
+				s_count += 1	# Sanity check
+
 			else:	# Somewhere in the middle
 				# Get pref of left and right	
 				score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)	# left
 				score += preferance(s_tab[i][j], s_tab[i][j+1], pref_tab)	# right
+				s_count += 2	# Sanity check
 
-	#print("Role Score: ", r_score)
-	#print("Pref Score: ", score)
-	#print("Final Score: ", score + r_score)
+	'''
+	print("Role Score: ", r_score)
+	print("Role Count: ", r_count)
+	print("Pref Score: ", score)
+	print("Score Count: ", s_count)
+	print("Final Score: ", score + r_score)
+	'''
 	return score + r_score
 
 
