@@ -22,6 +22,9 @@
 import numpy as np
 import random as rand
 import time
+import agent_file as af
+import sys
+
 
 # Read the text file data into 2d array. Give back 2d array and num.
 def read_data(data_file="data_insts/hw1-inst1.txt"):
@@ -55,10 +58,12 @@ def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 			count += 1											# Increment count
 	
 	fout.close()		# Close the file
+	print(table)
 
 
 # Run the stuff
-def main():
+def main(cmd_args):
+	#print(cmd_args[1])			# Verify command line args working
 	pref, num_p = read_data() 						# Create Pref table and num people
 
 	high_score = -10000			# I know, I know
@@ -68,14 +73,22 @@ def main():
 	time_left = 60				# 60 seconds
 	start_time = time.time()	# Start time
 
+	# Initialize random table
+	'''
+	table_seats = np.zeros((2, int(num_p/2)))		# Table
+	s_table = rand_agent(num_p, table_seats)		# Random seated table
+	'''
 
 	while time.time() < start_time + time_left:			# Loop while in 60 seconds
 		table_seats = np.zeros((2, int(num_p/2)))		# Table
-		
-		#s_table = rand_agent(num_p, table_seats)		# Random seated table
-		s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
-
+	
+		#'''	
+		s_table = rand_agent(num_p, table_seats)		# Random seated table
+		#s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
 		table_score = scoring(s_table, pref, num_p)		# Score of seated table
+		#'''
+
+		#s_table, table_score = af.agent_inc_shuf(s_table, fin_table_seats, high_score, pref, num_p)
 		
 		if table_score > high_score:
 			high_score = table_score	# update highest values
@@ -404,5 +417,5 @@ def scoring(s_tab, pref_tab, num_p):
 
 
 if __name__== "__main__" :
-	main()
+	main(sys.argv)
 
