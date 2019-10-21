@@ -38,7 +38,6 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
 	return data, num_p
 
 
-
 # Display the scoring in the correct format, then prepare to write out data
 def display_scores(score, table, num_p, out_file="output_testfile.txt"):	
 	fout = open(out_file, "w")				# Output file
@@ -63,8 +62,16 @@ def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 
 # Run the stuff
 def main(cmd_args):
-	#print(cmd_args[1])			# Verify command line args working
+	#for cmd in cmd_args:
+	#	print(cmd)			# Verify command line args working
+
 	pref, num_p = read_data() 						# Create Pref table and num people
+
+	tran_pref = np.transpose(pref)
+	#print("transposed pref matrix:\n{}".format(tran_pref))
+	pref_summed = np.add(pref, tran_pref)	
+	#print(pref_summed)										# Testing elementwise summation
+
 
 	high_score = -10000			# I know, I know
 	fin_table_seats = np.zeros((2, int(num_p/2)))		# Final Table
@@ -83,10 +90,14 @@ def main(cmd_args):
 		table_seats = np.zeros((2, int(num_p/2)))		# Table
 	
 		#'''	
-		s_table = rand_agent(num_p, table_seats)		# Random seated table
-		#s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
-		table_score = scoring(s_table, pref, num_p)		# Score of seated table
+		#s_table = rand_agent(num_p, table_seats)		# Random seated table
+		s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
+		#table_score = scoring(s_table, pref, num_p)		# Score of seated table
 		#'''
+		
+		# Faster table scoring
+		table_score = score_fast(s_table, pref_summed, num_p)
+		#print("Table score 1: {}\tTable score 2: {}".format(table_score, table_score2))
 
 		#s_table, table_score = af.agent_inc_shuf(s_table, fin_table_seats, high_score, pref, num_p)
 		
@@ -412,8 +423,35 @@ def scoring(s_tab, pref_tab, num_p):
 	print("Pref Score: ", score)
 	print("Score Count: ", s_count)
 	print("Final Score: ", score + r_score)
+	#'''
+	return score + r_score
+
+
+def score_fast(s_tab, tran_pref_sum, num_p):
+	score = 0
+	r_score = 0
+	
+	for i in range(int(num_p/2)):
+		#print(i)
+		score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[1][i])]	# Score for sitting accross
+		r_score += score_roles(s_tab[0][i], s_tab[1][i], num_p, True)	# opps - role once
+
+		if i < int(num_p/2 - 1):	# Not on the last index
+			#print(i)
+			score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[0][i+1])]	# Score for top adjacent
+			score += tran_pref_sum[int(s_tab[1][i])][int(s_tab[1][i+1])]	# Score for bot adjacent
+
+			r_score += score_roles(s_tab[0][i], s_tab[0][i+1], num_p, False)	# Role adjs top
+			r_score += score_roles(s_tab[1][i], s_tab[1][i+1], num_p, False)	# Role adjs bot
+
+	'''
+	print("score2: ", score)
+	print("r_score2: ", r_score)
+	print("-------------------------------")
 	'''
 	return score + r_score
+
+
 
 
 if __name__== "__main__" :
