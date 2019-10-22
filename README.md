@@ -4,11 +4,13 @@ Artificial Intelligence: Hw 1 - Details to come...
 HW 1: Dinner Party
 Suppose you are given a set of n people (with n even) to be seated at a dinner party. The people will be seated along the two sides of a long table.
 
+```
       o   o   o      o
    +-------------   ----+
    |             ...    | 
    +-------------   ----+ 
       o   o   o      o
+```
 Half are "hosts", half are "guests". The given function r(p) identifies the role of a given person.
 As the host, you also know an integer-valued "preference function" h(p1, p2) for a pair of people p1, p2. The preference function indicates how much the first person likes the second; it may be negative.
 
