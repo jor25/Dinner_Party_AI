@@ -12,8 +12,10 @@
 '''
 # Name: Jordan Le
 # Date: 10-5-19
-# Description: Project working with state spaces.
-# Run with "python3 dinner_party.py"
+# Description: Project working with state spaces. Attempting to reach maximum table score.
+# Run with "python3 dinner_party.py -<agent> -<inst#>"
+# Available Agents:	-rand	-greedy	-final
+# Available insts:	-inst1	-inst2	-inst3
 # Installs "pip3 install <package>"
 # Resources:
 # 	- https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html
@@ -28,6 +30,11 @@ import sys
 
 # Read the text file data into 2d array. Give back 2d array and num.
 def read_data(data_file="data_insts/hw1-inst1.txt"):
+	''' Read the text file data into a 2d numpy array.
+		Give back 2d array and the number of people.
+		ndarray data
+		int num_p
+	'''
 	
 	# Numpy read in my data - separate by space, skip row 1, all ints.	
 	data = np.loadtxt(data_file, delimiter=" ", skiprows=1, dtype=int)
@@ -39,7 +46,12 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
 
 
 # Display the scoring in the correct format, then prepare to write out data
-def display_scores(score, table, num_p, out_file="output_testfile.txt"):	
+def display_scores(score, table, num_p, out_file="output_testfile.txt"):
+	''' Display the score of the final table found in the 60 seconds
+		to both standard output and input specified text file.
+		The text file will contain the correct format for grading.
+		Note: Everyone will start at 1.
+	'''	
 	fout = open(out_file, "w")				# Output file
 	line = "Table Score: {}".format(score)	# Standard line to write to file
 	print(line)								# Display line
@@ -60,25 +72,61 @@ def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 	print(table)
 
 
+
 # Run the stuff
 def main(cmd_args):
-	#for cmd in cmd_args:
-	#	print(cmd)			# Verify command line args working
+	''' Main function which takes in command line argments to determine
+		which agent to use and what hw instance to run on.
+		Note: Using a transposed and element wise summed preferance
+		matrix to optimize calculations later on. All the 
+		h(p1, p2) + h(p2, p1) is already handled with the new matrix.
+	'''
 
-	pref, num_p = read_data() 						# Create Pref table and num people
+	if "-h" in cmd_args:
+		print("HELP")
 
-	tran_pref = np.transpose(pref)
+	# Some argument parsing - inst should be 2nd argument
+	if len(cmd_args) > 2:
+		inst = cmd_args[2]
+		my_file = "data_insts/hw1{}.txt".format(inst)
+		print(my_file)
+		pref, num_p = read_data(my_file) 	# Create Pref table and num people
+	else:
+		pref, num_p = read_data() 	# Create Pref table and num people
+
+	# Transpose matrix for simplified calculation
+	tran_pref = np.transpose(pref)					# Transpose the matrix
+	pref_summed = np.add(pref, tran_pref)			# Element wise sum to save calculation later
+	pref_modd = pref_summed.copy()
 	#print("transposed pref matrix:\n{}".format(tran_pref))
-	pref_summed = np.add(pref, tran_pref)	
 	#print(pref_summed)										# Testing elementwise summation
 
+	# My score better be better than 0
+	high_score = 0
 
-	high_score = -10000			# I know, I know
-	fin_table_seats = np.zeros((2, int(num_p/2)))		# Final Table
+	# Initialize empty table
+	fin_table_seats = np.zeros((2, int(num_p/2)))
 
 
 	time_left = 60				# 60 seconds
 	start_time = time.time()	# Start time
+
+
+
+
+	#testing
+	'''
+	table_seats = np.zeros((2, int(num_p/2)))		# Table
+	af.agent_opt_3(num_p, table_seats, pref_modd)
+	print(table_seats)
+	print (pref_summed, '\n', pref_modd)
+	#for i in range(10):
+	#	af.get_top_3(i, pref_summed)
+	'''
+
+
+
+
 
 	# Initialize random table
 	'''
@@ -89,9 +137,12 @@ def main(cmd_args):
 	while time.time() < start_time + time_left:			# Loop while in 60 seconds
 		table_seats = np.zeros((2, int(num_p/2)))		# Table
 	
-		#'''	
-		#s_table = rand_agent(num_p, table_seats)		# Random seated table
-		s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
+		#'''
+		if "-rand" in cmd_args:	
+			s_table = rand_agent(num_p, table_seats)		# Random seated table
+
+		elif "-greed" in cmd_args:
+			s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
 		#table_score = scoring(s_table, pref, num_p)		# Score of seated table
 		#'''
 		
@@ -111,6 +162,10 @@ def main(cmd_args):
 
 # Randomly place people at the table for the standard.
 def rand_agent(num_p, table):
+	''' Random agent randomly seats people at the table and
+		returns the seated table for scoring. It takes the number of people
+		and an empty table.
+	'''
 	unseated = list(range(num_p))	# Create list from 0 - num_p
 	#print(unseated)
 
@@ -171,7 +226,6 @@ def agent_3(num_p, table, pref):
 
 	# Give back the table
 	return table
-
 
 
 def place_bot_and_side(pref, cur_per, unseated, cut_off, goh):
@@ -305,9 +359,6 @@ def place_corner(pref, cur1, cur2, unseated):
 			pref_totals[index] = pref_sum
 			index += 1
 
-		#bc_index = np.argmax(pref_totals)
-		#best_choice = unseated[bc_index]
-		#return best_choice
 
 	else:
 
@@ -322,9 +373,6 @@ def place_corner(pref, cur1, cur2, unseated):
 			pref_totals[index] = pref_sum
 			index += 1
 
-		#bc_index = np.argmax(pref_totals)
-		#best_choice = unseated[bc_index]
-		#return best_choice
 
 
 	bc_index = np.argmax(pref_totals)
@@ -335,13 +383,22 @@ def place_corner(pref, cur1, cur2, unseated):
 
 # Return the role of the person - host or guest?
 def role(person, num):
+	''' Given a person and the number of people, identify their role.
+		Then return True if they're a host and False if they're a guest.
+	'''
 	if person < int(num/2):	# Host if in the first half
 		return True
 	else:				# Not host ie a Guest
 		return False
 
+
 # Return scores for roles
 def score_roles(p1, p2, num, opp):
+	''' Given two people, the number of people, and a boolean opp variable.
+		Determine the score to give based on role. Return 0 if the roles 
+		are the same. If the roles are different, then return 1 if they
+		are adjacent to one another and 2 if they're opposite of each other.
+	'''
 	if role(p1, num) == role(p2, num):	# If they're the same roles
 		return 0
 	else:						# If they're different roles
@@ -353,6 +410,10 @@ def score_roles(p1, p2, num, opp):
 
 # How much 1st person likes 2nd person - May be negative.
 def preferance(p1, p2, pref):
+	''' Given two people and the preferance matrix, determine how much the
+		1st person likes the 2nd person. However, if given the transposed
+		matrix, return the sum of how much both people like each other.
+	'''
 	return pref[int(p1)][int(p2)]	# return how much person 1 likes person 2
 
 
@@ -367,6 +428,7 @@ def preferance(p1, p2, pref):
 	- h(p1, p2) + h(p2, p1) points for every adjacent 
 		or opposite pair of people p1, p2.
 '''
+# Delete this
 def scoring(s_tab, pref_tab, num_p):
 	score = 0
 	r_score = 0
@@ -428,16 +490,19 @@ def scoring(s_tab, pref_tab, num_p):
 
 
 def score_fast(s_tab, tran_pref_sum, num_p):
+	''' More efficient scoring method, given a seated table,
+		the transposed/summed preferance matrix, and the number of people,
+		loop through both rows and get the roles and preferances of each pair.
+		Return the final score of the table.
+	'''
 	score = 0
 	r_score = 0
 	
 	for i in range(int(num_p/2)):
-		#print(i)
 		score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[1][i])]	# Score for sitting accross
 		r_score += score_roles(s_tab[0][i], s_tab[1][i], num_p, True)	# opps - role once
 
 		if i < int(num_p/2 - 1):	# Not on the last index
-			#print(i)
 			score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[0][i+1])]	# Score for top adjacent
 			score += tran_pref_sum[int(s_tab[1][i])][int(s_tab[1][i+1])]	# Score for bot adjacent
 
