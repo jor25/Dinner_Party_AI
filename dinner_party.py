@@ -70,8 +70,8 @@ def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 			fout.write(line + "\n")									# Write to the file
 			count += 1												# Increment count
 	
-	fout.close()		# Close the file
-	print(table)		# Display the table for me, not grading
+	fout.close()	# Close the file
+	print(table)	# Display the table for me, not grading
 
 
 
@@ -106,7 +106,6 @@ def main(cmd_args):
 	states = []										# Initialize states - may remove
 	time_left = 60									# Set time to 60 seconds
 	start_time = time.time()						# Start the time
-
 
 	while time.time() < start_time + time_left:			# Loop while in 60 seconds
 		table_seats = np.zeros((2, int(num_p/2)))		# Table
@@ -170,25 +169,23 @@ def agent_3(num_p, table, pref):
 
 	# Place first person
 	table[0][0] = unseated[rand.randint(0, len(unseated) - 1)]
-	unseated.remove(table[0][0]) # remove element by value
+	unseated.remove(table[0][0]) 	# remove element by value
 
 	# Loop through the top row
 	for j in range (int(num_p/2)-1):
 		# Place person below and to the right
 		if j == 0:	# place at bottom once
-			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, True)	# below
-			unseated.remove(table[1][j]) # remove bottom element by value
+			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, True)		# below
+			unseated.remove(table[1][j]) 	# remove bottom element by value
 	
 		if j != cut_off:
 			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, False)	# right
-			# Remove the specified value from unseated list
-			unseated.remove(table[0][j+1]) # remove right side element by value
+			unseated.remove(table[0][j+1]) 	# remove right side element by value
 
 		table[1][j+1] = place_corner(pref, int(table[0][j+1]), int(table[1][j]), unseated, num_p)
-		unseated.remove(table[1][j+1]) # remove right side element by value
+		unseated.remove(table[1][j+1]) 		# remove right side element by value
 
-	# Give back the table
-	return table
+	return table	# Give back the table
 
 
 def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
@@ -209,8 +206,8 @@ def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
 	cur_pref_val = pref[cur_per][cur_fav_remaining]		# Their corresponding pref values
 
 	# Are there any people who are optimal and remaining in the unseated list
-	if len(cur_fav_remaining) == 0:				# Empty list, then we go through everyone
-		cur_pref_val = pref[cur_per][unseated]	# Get pref of all people to the person
+	if len(cur_fav_remaining) == 0:					# Empty list, then we go through everyone
+		cur_pref_val = pref[cur_per][unseated]		# Get pref of all people to the person
 		
 		# Update scoring with roles
 		for i in range(len(unseated)):
@@ -284,7 +281,7 @@ def place_corner(pref, cur1, cur2, unseated, num_p):
 			cur2_fav = pref[cur2][i] + score_roles(cur2, i, num_p, False)	# adj
 			pref_totals[i] = cur1_fav + cur2_fav							# Update pref value
 
-		#bc_index = np.argmax(pref_totals)					# Get 
+		#bc_index = np.argmax(pref_totals)					# Get best
 		#best_choice = cur_mutual_fav_remaining[bc_index]
 		best_choice = cur_mutual_fav_remaining[rand.randint(0, len(cur_mutual_fav_remaining) - 1)]
 
@@ -329,82 +326,19 @@ def preferance(p1, p2, pref):
 
 
 # Determine Scoring
-'''
-	- 1 point for every adjacent pair (seated next to 
-		each other) of people with one a host and the 
-		other a guest.
-	- 2 points for every opposite pair (seated across
-		from each other) of people with one a host and
-		the other a guest.
-	- h(p1, p2) + h(p2, p1) points for every adjacent 
-		or opposite pair of people p1, p2.
-'''
-# Delete this
-def scoring(s_tab, pref_tab, num_p):
-	score = 0
-	r_score = 0
-	
-	# For sanity check
-	r_count = 0		# Check how many roles calculated - 13 for n=10
-	s_count = 0 	# Check how many scores calculated - 26 for n=10
-
-
-	# Loop through the table
-	for i in range(2):						# Top and bottom
-		for j in range (int(num_p/2)):		# Left to right
-			# Deal with sitting across
-			if i == 0:		#  Top of table
-				# pref of i+1
-				score += preferance(s_tab[i][j], s_tab[i+1][j], pref_tab)	# Get score from top to bottom
-				# Check ROLE num_p/2 times for opposite pairs
-				r_score += score_roles(s_tab[i][j], s_tab[i+1][j], num_p, True)	# opps - role once
-				r_count += 1 # Sanity check
-
-			else:	# Bottom of table
-				# pref of i-1
-				score += preferance(s_tab[i][j], s_tab[i-1][j], pref_tab)	# Get score from bottom to top
-
-			s_count += 1	# Sanity check
-		
-			# Check ROLE for sitting adjacent (to the right) - num_p/2 -1
-			if j < num_p/2 - 1:
-				r_score += score_roles(s_tab[i][j], s_tab[i][j+1], num_p, False)	# adjs
-				r_count += 1 # Sanity check
-
-
-			# Deal with sitting on sides
-			if j == 0 or j == int(num_p/2 - 1):	# at the corners
-				if j == 0:	# left corner
-					# Get pref of person right
-					score += preferance(s_tab[i][j], s_tab[i][j+1], pref_tab)
-
-				else:	# right corner
-					# get pref of person left
-					score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)
-
-				s_count += 1	# Sanity check
-
-			else:	# Somewhere in the middle
-				# Get pref of left and right	
-				score += preferance(s_tab[i][j], s_tab[i][j-1], pref_tab)	# left
-				score += preferance(s_tab[i][j], s_tab[i][j+1], pref_tab)	# right
-				s_count += 2	# Sanity check
-
-	'''
-	print("Role Score: ", r_score)
-	print("Role Count: ", r_count)
-	print("Pref Score: ", score)
-	print("Score Count: ", s_count)
-	print("Final Score: ", score + r_score)
-	#'''
-	return score + r_score
-
-
 def score_fast(s_tab, tran_pref_sum, num_p):
 	''' More efficient scoring method, given a seated table,
 		the transposed/summed preferance matrix, and the number of people,
 		loop through both rows and get the roles and preferances of each pair.
 		Return the final score of the table.
+		- 1 point for every adjacent pair (seated next to 
+			each other) of people with one a host and the 
+			other a guest.
+		- 2 points for every opposite pair (seated across
+			from each other) of people with one a host and
+			the other a guest.
+		- h(p1, p2) + h(p2, p1) points for every adjacent 
+			or opposite pair of people p1, p2.
 	'''
 	score = 0
 	r_score = 0
@@ -420,16 +354,10 @@ def score_fast(s_tab, tran_pref_sum, num_p):
 			r_score += score_roles(s_tab[0][i], s_tab[0][i+1], num_p, False)	# Role adjs top
 			r_score += score_roles(s_tab[1][i], s_tab[1][i+1], num_p, False)	# Role adjs bot
 
-	'''
-	print("score2: ", score)
-	print("r_score2: ", r_score)
-	print("-------------------------------")
-	'''
 	return score + r_score
 
 
-
-
+# Call Main
 if __name__== "__main__" :
 	main(sys.argv)
 
