@@ -34,9 +34,9 @@ import sys
 # Read the text file data into 2d array. Give back 2d array and num.
 def read_data(data_file="data_insts/hw1-inst1.txt"):
 	''' Read the text file data into a 2d numpy array.
-		Give back 2d array and the number of people.
-		ndarray data
-		int num_p
+	    Give back 2d array and the number of people.
+	    ndarray data
+	    int num_p
 	'''
 	
 	# Numpy read in my data - separate by space, skip row 1, all ints.	
@@ -50,25 +50,25 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
 # Display the scoring in the correct format, then prepare to write out data
 def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 	''' Display the score of the final table found in the 60 seconds
-		to both standard output and input specified text file.
-		The text file will contain the correct format for grading.
-		Note: Everyone will start at 1.
+	    to both standard output and input specified text file.
+	    The text file will contain the correct format for grading.
+	    Note: Everyone will start at 1.
 	'''	
-	fout = open(out_file, "w")					# Output file
-	line = "Table Score: {}".format(score)		# Standard line to write to file
-	print(line)									# Display line
-	fout.write(line + "\n")						# Write to the file
+	fout = open(out_file, "w")		# Output file
+	line = "Table Score: {}".format(score)  # Standard line to write to file
+	print(line)				# Display line
+	fout.write(line + "\n")			# Write to the file
 
-	count = 1	# Initialize a count at one
+	count = 1   # Initialize a count at one
 	
 	# Loop through the table and display as required
 	for i in range(2):
 		for j in range (int(num_p/2)):
 			# Display current index, person + 1 because I like my zero indeces
 			line = "p{} s{}".format(int(table[i][j]) + 1, count)	# Person num & Seat num
-			print(line)												# Display line
-			fout.write(line + "\n")									# Write to the file
-			count += 1												# Increment count
+			print(line)						# Display line
+			fout.write(line + "\n")					# Write to the file
+			count += 1						# Increment count
 	
 	fout.close()	# Close the file
 	print(table)	# Display the table for me, not grading
@@ -78,10 +78,10 @@ def display_scores(score, table, num_p, out_file="output_testfile.txt"):
 # Run the stuff
 def main(cmd_args):
 	''' Main function which takes in command line argments to determine
-		which agent to use and what hw instance to run on.
-		Note: Using a transposed and element wise summed preferance
-		matrix to optimize calculations later on. All the 
-		h(p1, p2) + h(p2, p1) is already handled with the new matrix.
+	    which agent to use and what hw instance to run on.
+	    Note: Using a transposed and element wise summed preferance
+	    matrix to optimize calculations later on. All the 
+	    h(p1, p2) + h(p2, p1) is already handled with the new matrix.
 	'''
 
 	if "-h" in cmd_args:
@@ -92,31 +92,31 @@ def main(cmd_args):
 		inst = cmd_args[2]
 		my_file = "data_insts/hw1{}.txt".format(inst)
 		print(my_file)
-		pref, num_p = read_data(my_file) 	# Create Pref table and num people specific
+		pref, num_p = read_data(my_file) 	        # Create Pref table and num people specific
 	else:
 		pref, num_p = read_data() 			# Create Pref table and num people default
 
 	# Transpose matrix for simplified calculation
-	tran_pref = np.transpose(pref)					# Transpose the matrix
+	tran_pref = np.transpose(pref)				# Transpose the matrix
 	pref_summed = np.add(pref, tran_pref)			# Element wise sum to save calculation later
 
 	# Initialize variables and time
-	high_score = 0									# Initialize my score. It better be better than 0
+	high_score = 0					# Initialize my score. It better be better than 0
 	fin_table_seats = np.zeros((2, int(num_p/2)))	# Initialize empty table
-	states = []										# Initialize states - may remove
-	time_left = 60									# Set time to 60 seconds
-	start_time = time.time()						# Start the time
+	states = []					# Initialize states - may remove
+	time_left = 60					# Set time to 60 seconds
+	start_time = time.time()			# Start the time
 
-	while time.time() < start_time + time_left:			# Loop while in 60 seconds
-		table_seats = np.zeros((2, int(num_p/2)))		# Table
+	while time.time() < start_time + time_left:	    # Loop while in 60 seconds
+		table_seats = np.zeros((2, int(num_p/2)))   # Table
 	
 		if "-rand" in cmd_args:	
-			s_table = rand_agent(num_p, table_seats)				# Random seated table
+			s_table = rand_agent(num_p, table_seats)            # Random seated table
 
 		elif "-greed" in cmd_args:
-			s_table = agent_3(num_p, table_seats, pref_summed)		# Greedy seated table
+			s_table = agent_3(num_p, table_seats, pref_summed)  # Greedy seated table
 	
-		state = np.reshape(s_table, (1,-1))			# Create 1d state from s_table
+		state = np.reshape(s_table, (1,-1))		            # Create 1d state from s_table
 
 		# Need at least one state to compare to
 		if len(states) == 0:
@@ -124,24 +124,23 @@ def main(cmd_args):
 
 		# If the state doesn't exists in the states, len will be 0
 		if len(np.where((states == state).all(axis=1))[0]) == 0:
-			states.append(state[0])		# Add the state	
-
+			states.append(state[0])		                        # Add the state	
 			table_score = score_fast(s_table, pref_summed, num_p)	# Faster table scoring
 		
-			if table_score > high_score:							# Check for new high score
-				high_score = table_score							# Update highest score
-				fin_table_seats = s_table							# Save table configuation
-				print("Current Highest Table Score: ", high_score)	# Display current highest
+			if table_score > high_score:				    # Check for new high score
+				high_score = table_score			    # Update highest score
+				fin_table_seats = s_table			    # Save table configuation
+				print("Current Highest Table Score: ", high_score)  # Display current highest
 
-	print("Number of Unique States: ", len(states))			# Show number of unique states - may remove
-	display_scores(high_score, fin_table_seats, num_p)		# Output of final seated table score and text file
+	print("Number of Unique States: ", len(states))         # Show number of unique states - may remove
+	display_scores(high_score, fin_table_seats, num_p)	# Output of final seated table score and text file
 
 
 # Randomly place people at the table for the standard.
 def rand_agent(num_p, table):
 	''' Random agent randomly seats people at the table and
-		returns the seated table for scoring. It takes the number of people
-		and an empty table.
+	    returns the seated table for scoring. It takes the number of people
+	    and an empty table.
 	'''
 	unseated = list(range(num_p))	# Create list from 0 - num_p
 
@@ -160,9 +159,9 @@ def rand_agent(num_p, table):
 # Agent Algorithm 3
 def agent_3(num_p, table, pref):
 	''' Agent that takes the greedy approach and attempts to optimize early
-		in the seating arrangement. It does this with a depth first local search 
-		containing a greedy heuristic. This method includes random restarts 
-		and noise moves in cases of the top 40% optimal moves. 
+	    in the seating arrangement. It does this with a depth first local search 
+	    containing a greedy heuristic. This method includes random restarts 
+	    and noise moves in cases of the top 40% optimal moves. 
 	'''
 	unseated = list(range(num_p))	# Create list from 0 - num_p
 	cut_off = int(num_p/2-1)
@@ -175,11 +174,11 @@ def agent_3(num_p, table, pref):
 	for j in range (int(num_p/2)-1):
 		# Place person below and to the right
 		if j == 0:	# place at bottom once
-			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, True)		# below
+			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, True)	    # below
 			unseated.remove(table[1][j]) 	# remove bottom element by value
 	
 		if j != cut_off:
-			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, False)	# right
+			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, False)   # right
 			unseated.remove(table[0][j+1]) 	# remove right side element by value
 
 		table[1][j+1] = place_corner(pref, int(table[0][j+1]), int(table[1][j]), unseated, num_p)
@@ -190,10 +189,10 @@ def agent_3(num_p, table, pref):
 
 def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
 	''' Given the transposed summed preferance matrix, the current person,
-		the unseated table, number of people, and boolean value of opposite,
-		get the top 40% of optimal choices to place next to that person.
-		If the optimal choices are not also in the unseated list, then 
-		select the most optimal choice from everyone in the unseated.
+	    the unseated table, number of people, and boolean value of opposite,
+            get the top 40% of optimal choices to place next to that person.
+	    If the optimal choices are not also in the unseated list, then 
+	    select the most optimal choice from everyone in the unseated.
 	'''
 	percent = int(num_p * .4)	# Top 40% of people	
 
@@ -203,11 +202,11 @@ def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
 	# Get the overlap between favorites and those unseated
 	mask = np.isin(cur_fav, unseated)
 	cur_fav_remaining = cur_fav[mask]	
-	cur_pref_val = pref[cur_per][cur_fav_remaining]		# Their corresponding pref values
+	cur_pref_val = pref[cur_per][cur_fav_remaining]	# Their corresponding pref values
 
 	# Are there any people who are optimal and remaining in the unseated list
-	if len(cur_fav_remaining) == 0:					# Empty list, then we go through everyone
-		cur_pref_val = pref[cur_per][unseated]		# Get pref of all people to the person
+	if len(cur_fav_remaining) == 0:			# Empty list, then we go through everyone
+		cur_pref_val = pref[cur_per][unseated]	# Get pref of all people to the person
 		
 		# Update scoring with roles
 		for i in range(len(unseated)):
@@ -235,39 +234,38 @@ def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
 
 def place_corner(pref, cur1, cur2, unseated, num_p):
 	''' Given the summed transposed preferance matrix, the person to the top right (cur1),
-		the person below (cur2), a list of the unseated people, and the total number of people,
-		identify the top 40 percent of cur1 and cur2. See if they have any overlap and if 
-		those people are also in the unseated list of people. If they are, randomly select
-		one of the remaining optimal solutions. Otherwise, if there is no overlap, then
-		look through the whole list of unseated people looking for an optimal person to place
-		between cur1 and cur2.
+	    the person below (cur2), a list of the unseated people, and the total number of people,
+	    identify the top 40 percent of cur1 and cur2. See if they have any overlap and if 
+	    those people are also in the unseated list of people. If they are, randomly select
+	    one of the remaining optimal solutions. Otherwise, if there is no overlap, then
+	    look through the whole list of unseated people looking for an optimal person to place
+	    between cur1 and cur2.
 	'''
-
 	percent = int(num_p * .4)	# Top 40% of people
 
 	# The current person's favorite 4 people.
 	cur1_fav = np.argpartition(pref[cur1], -percent)[-percent:]	# Cur1's top 4 most liked people
-	cur1_pref_val = pref[cur1][cur1_fav]						# Cur1's corresponding pref values
+	cur1_pref_val = pref[cur1][cur1_fav]				# Cur1's corresponding pref values
 	cur2_fav = np.argpartition(pref[cur2], -percent)[-percent:]	# Cur2's top 4 most liked people
-	cur2_pref_val = pref[cur2][cur2_fav]						# Cur2's corresponding pref values
+	cur2_pref_val = pref[cur2][cur2_fav]				# Cur2's corresponding pref values
 
 	# Check if the two have any overlap
 	mask = np.isin(cur1_fav, cur2_fav)		# Do cur1 and cur2 have mutual friends
 	cur_mutual_fav = cur1_fav[mask]			# Load mutual friends
 	
 	# Check if the overlap from cur1 and cur2 are in the unseated list
-	mask2 = np.isin(cur_mutual_fav, unseated)			# Compare cur1 & cur2 mutual friends with unseated
+	mask2 = np.isin(cur_mutual_fav, unseated)		# Compare cur1 & cur2 mutual friends with unseated
 	cur_mutual_fav_remaining = cur_mutual_fav[mask2]	# Load remaining mutual friends
 
 	# Check for any remaining mutual friends
-	if len(cur_mutual_fav_remaining) == 0:		# If no mutual friends remaining
-		pref_totals = np.zeros(len(unseated))	# Preferance totals of each
+	if len(cur_mutual_fav_remaining) == 0:		        # If no mutual friends remaining
+		pref_totals = np.zeros(len(unseated))	        # Preferance totals of each
 
 		# Look through all unseated	calculate score with roles
 		for i in range(len(unseated)):
 			cur1_fav = pref[cur1][i] + score_roles(cur1, i, num_p, True)	# opp
 			cur2_fav = pref[cur2][i] + score_roles(cur2, i, num_p, False)	# adj
-			pref_totals[i] = cur1_fav + cur2_fav							# Update pref value
+			pref_totals[i] = cur1_fav + cur2_fav				# Update pref value
 		
 		bc_index = np.argmax(pref_totals)	# Get index of largest pref value
 		best_choice = unseated[bc_index]	# Get the best choice from the unseated
@@ -279,7 +277,7 @@ def place_corner(pref, cur1, cur2, unseated, num_p):
 		for i in range(len(cur_mutual_fav_remaining)):
 			cur1_fav = pref[cur1][i] + score_roles(cur1, i, num_p, True)	# opp
 			cur2_fav = pref[cur2][i] + score_roles(cur2, i, num_p, False)	# adj
-			pref_totals[i] = cur1_fav + cur2_fav							# Update pref value
+			pref_totals[i] = cur1_fav + cur2_fav				# Update pref value
 
 		#bc_index = np.argmax(pref_totals)					# Get best
 		#best_choice = cur_mutual_fav_remaining[bc_index]
@@ -292,35 +290,35 @@ def place_corner(pref, cur1, cur2, unseated, num_p):
 # Return the role of the person - host or guest?
 def role(person, num):
 	''' Given a person and the number of people, identify their role.
-		Then return True if they're a host and False if they're a guest.
+	    Then return True if they're a host and False if they're a guest.
 	'''
-	if person < int(num/2):		# Host if in the first half
+	if person < int(num/2):	    # Host if in the first half
 		return True
-	else:						# Not host ie a Guest
+	else:		            # Not host ie a Guest
 		return False
 
 
 # Return scores for roles
 def score_roles(p1, p2, num, opp):
 	''' Given two people, the number of people, and a boolean opp variable.
-		Determine the score to give based on role. Return 0 if the roles 
-		are the same. If the roles are different, then return 1 if they
-		are adjacent to one another and 2 if they're opposite of each other.
+	    Determine the score to give based on role. Return 0 if the roles 
+	    are the same. If the roles are different, then return 1 if they
+	    are adjacent to one another and 2 if they're opposite of each other.
 	'''
-	if role(p1, num) == role(p2, num):	# If they're the same roles
+	if role(p1, num) == role(p2, num):  # If they're the same roles
 		return 0						
-	else:								# If they're different roles
-		if opp:							# If opposite of each other
+	else:				    # If they're different roles
+		if opp:			    # If opposite of each other
 			return 2
-		else:							# They're next to each other
+		else:			    # They're next to each other
 			return 1
 
 
 # How much 1st person likes 2nd person - May be negative.
 def preferance(p1, p2, pref):
 	''' Given two people and the preferance matrix, determine how much the
-		1st person likes the 2nd person. However, if given the transposed
-		matrix, return the sum of how much both people like each other.
+	    1st person likes the 2nd person. However, if given the transposed
+	    matrix, return the sum of how much both people like each other.
 	'''
 	return pref[int(p1)][int(p2)]	# Return how much person 1 likes person 2
 
@@ -328,9 +326,9 @@ def preferance(p1, p2, pref):
 # Determine Scoring
 def score_fast(s_tab, tran_pref_sum, num_p):
 	''' More efficient scoring method, given a seated table,
-		the transposed/summed preferance matrix, and the number of people,
-		loop through both rows and get the roles and preferances of each pair.
-		Return the final score of the table.
+	    the transposed/summed preferance matrix, and the number of people,
+	    loop through both rows and get the roles and preferances of each pair.
+	    Return the final score of the table.
 		- 1 point for every adjacent pair (seated next to 
 			each other) of people with one a host and the 
 			other a guest.
@@ -344,15 +342,15 @@ def score_fast(s_tab, tran_pref_sum, num_p):
 	r_score = 0
 	
 	for i in range(int(num_p/2)):
-		score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[1][i])]	# Score for sitting accross
-		r_score += score_roles(s_tab[0][i], s_tab[1][i], num_p, True)	# opps - role once
+		score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[1][i])]	            # Score for sitting accross
+		r_score += score_roles(s_tab[0][i], s_tab[1][i], num_p, True)	            # opps - role once
 
-		if i < int(num_p/2 - 1):	# Not on the last index
-			score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[0][i+1])]	# Score for top adjacent
-			score += tran_pref_sum[int(s_tab[1][i])][int(s_tab[1][i+1])]	# Score for bot adjacent
+		if i < int(num_p/2 - 1):	                                            # Not on the last index
+			score += tran_pref_sum[int(s_tab[0][i])][int(s_tab[0][i+1])]	    # Score for top adjacent
+			score += tran_pref_sum[int(s_tab[1][i])][int(s_tab[1][i+1])]	    # Score for bot adjacent
 
-			r_score += score_roles(s_tab[0][i], s_tab[0][i+1], num_p, False)	# Role adjs top
-			r_score += score_roles(s_tab[1][i], s_tab[1][i+1], num_p, False)	# Role adjs bot
+			r_score += score_roles(s_tab[0][i], s_tab[0][i+1], num_p, False)    # Role adjs top
+			r_score += score_roles(s_tab[1][i], s_tab[1][i+1], num_p, False)    # Role adjs bot
 
 	return score + r_score
 
