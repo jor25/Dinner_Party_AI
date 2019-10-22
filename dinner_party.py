@@ -20,6 +20,7 @@
 # Resources:
 # 	- https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html
 #	- https://docs.scipy.org/doc/numpy/reference/generated/numpy.isin.html
+#	- https://stackoverflow.com/questions/25823608/find-matching-rows-in-2-dimensional-numpy-array
 
 import numpy as np
 import random as rand
@@ -133,6 +134,10 @@ def main(cmd_args):
 	table_seats = np.zeros((2, int(num_p/2)))		# Table
 	s_table = rand_agent(num_p, table_seats)		# Random seated table
 	'''
+	
+	# Init states
+	states = []
+
 
 	while time.time() < start_time + time_left:			# Loop while in 60 seconds
 		table_seats = np.zeros((2, int(num_p/2)))		# Table
@@ -142,20 +147,44 @@ def main(cmd_args):
 			s_table = rand_agent(num_p, table_seats)		# Random seated table
 
 		elif "-greed" in cmd_args:
-			s_table = agent_3(num_p, table_seats, pref)		# Greedy seated table
+			s_table = agent_3(num_p, table_seats, pref_summed)		# Greedy seated table
 		#table_score = scoring(s_table, pref, num_p)		# Score of seated table
 		#'''
+	
 		
-		# Faster table scoring
-		table_score = score_fast(s_table, pref_summed, num_p)
-		#print("Table score 1: {}\tTable score 2: {}".format(table_score, table_score2))
+		#print("s_table ", list(s_table),"\tstates ", states )
+		state = np.reshape(s_table, (1,-1)) 	
+		#print(np.where(state == states))
 
-		#s_table, table_score = af.agent_inc_shuf(s_table, fin_table_seats, high_score, pref, num_p)
+		# If the state exists in the states, len will be greater than 0
+		if len(states) == 0:
+			states.append(state[0])
+
+		if len(np.where((states == state).all(axis=1))[0]):
+			#print("VISITED")
+			#print(np.where((states == state).all(axis=1))[0])
+			#print(len(np.where((states == state).all(axis=1))[0]))
+			pass
+		else:
+			states.append(state[0])	
+
+			# Faster table scoring
+			table_score = score_fast(s_table, pref_summed, num_p)
+			#print("Table score 1: {}\tTable score 2: {}".format(table_score, table_score2))
+
+			#s_table, table_score = af.agent_inc_shuf(s_table, fin_table_seats, high_score, pref, num_p)
 		
-		if table_score > high_score:
-			high_score = table_score	# update highest values
-			fin_table_seats = s_table
-			print("Current Highest Table Score: ", high_score)
+			if table_score > high_score:
+				high_score = table_score	# update highest values
+				fin_table_seats = s_table
+				print("Current Highest Table Score: ", high_score)
+		'''
+		if state in states:
+			print("VISITED")
+		else:
+			states.append(state)	
+		'''
+	print("Number of Unique States: ", len(states))
 	display_scores(high_score, fin_table_seats, num_p)		# Output of seated table score
 	#display_scores(high_score, s_table, num_p)		# Output of seated table score
 
@@ -190,11 +219,8 @@ def rand_agent(num_p, table):
 # Agent Algorithm 3
 def agent_3(num_p, table, pref):
 	unseated = list(range(num_p))	# Create list from 0 - num_p
+	cut_off = int(num_p/2-1)
 	#print(unseated)
-	
-	# Select guest or host first
-	goh = rand.randint(0, 1)	# 0 is guest, 1 is host
-	cut_off = int(num_p/2)
 
 	# Place first person
 	table[0][0] = unseated[rand.randint(0, len(unseated) - 1)]
@@ -206,17 +232,17 @@ def agent_3(num_p, table, pref):
 	for j in range (int(num_p/2)-1):
 		# Place person below and to the right
 		if j == 0:	# place at bottom once
-			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, cut_off, goh)	# below
+			table[1][j]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, True)	# below
 			unseated.remove(table[1][j]) # remove bottom element by value
 	
 		if j != cut_off:
-			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, cut_off, goh)	# right
+			table[0][j+1]= place_bot_and_side(pref, int(table[0][j]), unseated, num_p, False)	# right
 			# Remove the specified value from unseated list
 			unseated.remove(table[0][j+1]) # remove right side element by value
 
 		#print(table)
 
-		table[1][j+1] = place_corner(pref, int(table[0][j+1]), int(table[1][j]), unseated)
+		table[1][j+1] = place_corner(pref, int(table[0][j+1]), int(table[1][j]), unseated, num_p)
 		unseated.remove(table[1][j+1]) # remove right side element by value
 		#print(table)
 		#print(unseated)
@@ -228,14 +254,12 @@ def agent_3(num_p, table, pref):
 	return table
 
 
-def place_bot_and_side(pref, cur_per, unseated, cut_off, goh):
-	
+def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
+	percent = int(num_p * .4)	
 	#print("-------------------------------------------------")
-	options = []
-	index = 0
 
 	# The current person's favorite 4 people.
-	cur_fav = np.argpartition(pref[cur_per], -4)[-4:]	# Their top 4 most liked people
+	cur_fav = np.argpartition(pref[cur_per], -percent)[-percent:]	# Their top 4 most liked people
 
 	# Get the overlap between favorites and those unseated
 	mask = np.isin(cur_fav, unseated)
@@ -244,37 +268,22 @@ def place_bot_and_side(pref, cur_per, unseated, cut_off, goh):
 	#print("REMAINING ", cur_fav_remaining)
 
 	cur_pref_val = pref[cur_per][cur_fav_remaining]	# Their corresponding pref values
-	if cur_per < cut_off:	# Means they are a host
-		cur_role = "host"
-		goh = 0	# Host
-	else:
-		cur_role = "guest"
-		goh = 1	# Guest
+	
 
-	#print("cur_p: {}\tcur_4_fav_people: {}\tcur_pref_vals: {}\tcur_role: {}".format(cur_per, cur_fav_remaining, cur_pref_val, cur_role))	
+
+	# Get their role here	
+
+	#print("cur_p: {}\tcur_4_fav_people: {}\tcur_pref_vals: {}".format(cur_per, cur_fav_remaining, cur_pref_val))	
 	if len(cur_fav_remaining) == 0:	# Empty list, then we go through everyone
-		# Loop through all people
+		# Get pref of all people to the person
 		cur_pref_val = pref[cur_per][unseated]
-		for p in unseated:
-			pref_for_cur = pref[p][cur_per]	# How person p feels about cur
-
-			if p < cut_off:	# Means they are host
-				p_role = "host"
-				p_goh = 0
-			else:	
-				p_role = "guest"
-				p_goh = 1
-
-			#print ("p: {}\tp_pref_for_cur: {}\tp_role: {}".format(p, pref_for_cur, p_role))
-
-			# Add the results
-			cur_pref_val[index] += pref_for_cur	# How much p likes cur
-
-			if goh != p_goh:				# Diff, therefore points
-				cur_pref_val[index] += 2	# Add two points for opps
 		
-			index += 1	# Increment index
-
+		#print("BEFORE ", unseated, ' ', cur_pref_val)
+		# Update scoring with roles
+		for i in range(len(unseated)):
+			cur_pref_val[i] += score_roles(cur_per, unseated[i], num_p, opp)
+		
+		#print(cur_pref_val)
 		# Display total of how much they like each other
 		#print("cur_fav_people: {}\toverall_pref_vals: {}".format(cur_fav_remaining, cur_pref_val))
 	
@@ -292,91 +301,71 @@ def place_bot_and_side(pref, cur_per, unseated, cut_off, goh):
 
 	else:
 		# Loop through cur's fav people and see how they feel about cur
-		for p in cur_fav_remaining:
-			pref_for_cur = pref[p][cur_per]	# How person p feels about cur
-
-			if p < cut_off:	# Means they are host
-				p_role = "host"
-				p_goh = 0
-			else:	
-				p_role = "guest"
-				p_goh = 1
-
-			#print ("p: {}\tp_pref_for_cur: {}\tp_role: {}".format(p, pref_for_cur, p_role))
-
-			# Add the results
-			cur_pref_val[index] += pref_for_cur	# How much p likes cur
-
-			if goh != p_goh:				# Diff, therefore points
-				cur_pref_val[index] += 2	# Add two points for opps
-		
-			index += 1	# Increment index
-
 		# Display total of how much they like each other
 		#print("cur_fav_people: {}\toverall_pref_vals: {}".format(cur_fav_remaining, cur_pref_val))
+		
+		#print("BEFORE ", cur_fav_remaining, ' ', cur_pref_val)
+		# Update scoring with roles
+		for i in range(len(cur_fav_remaining)):
+			cur_pref_val[i] += score_roles(cur_per, cur_fav_remaining[i], num_p, opp)
+		#print("AFTER ", cur_fav_remaining, ' ', cur_pref_val)
 	
 		# Best Choice
-		'''
+		'''	# Gives me a fixed score of 71
 		bc_index = np.argmax(cur_pref_val)
 		best_choice = cur_fav_remaining[bc_index]
-		'''
+		#'''
 		best_choice = cur_fav_remaining[rand.randint(0, len(cur_fav_remaining) - 1)]	# Select random from top remaining
 
 		#print("Seat p: {}".format(best_choice))
 		return best_choice
 
 
-def place_corner(pref, cur1, cur2, unseated):
+def place_corner(pref, cur1, cur2, unseated, num_p):
 
-	index = 0
+	percent = int(num_p * .4)	
+
 	# The current person's favorite 4 people.
-	cur1_fav = np.argpartition(pref[cur1], -4)[-4:]	# Their top 4 most liked people
+	cur1_fav = np.argpartition(pref[cur1], -percent)[-percent:]	# Their top 4 most liked people
 	cur1_pref_val = pref[cur1][cur1_fav]	# Their corresponding pref values
 
 
-	cur2_fav = np.argpartition(pref[cur2], -4)[-4:]	# Their top 4 most liked people
+	cur2_fav = np.argpartition(pref[cur2], -percent)[-percent:]	# Their top 4 most liked people
 	cur2_pref_val = pref[cur2][cur2_fav]	# Their corresponding pref values
 
+	# Check if the two have any overlap
 	mask = np.isin(cur1_fav, cur2_fav)
 	cur_mutual_fav = cur1_fav[mask]
 	#print("cur1: {}\tcur2: {}\tcur_mutual: {}".format(cur1_fav, cur2_fav, cur_mutual_fav))
 	
+	# Check if the overlap from cur1 and cur2 are in the unseated list
 	mask2 = np.isin(cur_mutual_fav, unseated)
 	cur_mutual_fav_remaining = cur_mutual_fav[mask2]
 
 	#print("remaining: {}\tlen: {}".format(cur_mutual_fav_remaining, len(cur_mutual_fav_remaining)))
 
-	if len(cur_mutual_fav_remaining) == 0:	# If no mutual friends
+	if len(cur_mutual_fav_remaining) == 0:	# If no mutual friends remaining
 		# Look through all unseated
 		pref_totals = np.zeros(len(unseated))
-		cur1_fav = pref[cur1][unseated]
-		cur2_fav = pref[cur2][unseated]
-		for p in unseated:
-			pref_for_c1 = pref[p][cur1]
-			pref_for_c2 = pref[p][cur2]
 
-			pref_sum = cur1_fav[index] + cur2_fav[index] + pref_for_c1 + pref_for_c2
-			pref_totals[index] = pref_sum
-			index += 1
-
+		for i in range(len(unseated)):
+			cur1_fav = pref[cur1][i] + score_roles(cur1, i, num_p, True)	# opp
+			cur2_fav = pref[cur2][i] + score_roles(cur2, i, num_p, False)	# adj
+			pref_totals[i] = cur1_fav + cur2_fav
+		
+		bc_index = np.argmax(pref_totals)
+		best_choice = unseated[bc_index]
 
 	else:
 
 		pref_totals = np.zeros(len(cur_mutual_fav_remaining))
-		cur1_fav = pref[cur1][cur_mutual_fav_remaining]
-		cur2_fav = pref[cur2][cur_mutual_fav_remaining]
-		for p in cur_mutual_fav_remaining:
-			pref_for_c1 = pref[p][cur1]
-			pref_for_c2 = pref[p][cur2]
+		for i in range(len(cur_mutual_fav_remaining)):
+			cur1_fav = pref[cur1][i] + score_roles(cur1, i, num_p, True)	# opp
+			cur2_fav = pref[cur2][i] + score_roles(cur2, i, num_p, False)	# adj
+			pref_totals[i] = cur1_fav + cur2_fav
 
-			pref_sum = cur1_fav[index] + cur2_fav[index] + pref_for_c1 + pref_for_c2
-			pref_totals[index] = pref_sum
-			index += 1
-
-
-
-	bc_index = np.argmax(pref_totals)
-	best_choice = unseated[bc_index]
+		bc_index = np.argmax(pref_totals)
+		best_choice = cur_mutual_fav_remaining[bc_index]
 	return best_choice
 
 
