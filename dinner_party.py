@@ -218,6 +218,11 @@ def rand_agent(num_p, table):
 
 # Agent Algorithm 3
 def agent_3(num_p, table, pref):
+	''' Agent that takes the greedy approach and attempts to optimize early
+		in the seating arrangement. It does this with a depth first local search 
+		containing a greedy heuristic. This method includes random restarts 
+		and noise moves in cases of the top 40% optimal moves. 
+	'''
 	unseated = list(range(num_p))	# Create list from 0 - num_p
 	cut_off = int(num_p/2-1)
 	#print(unseated)
@@ -255,6 +260,12 @@ def agent_3(num_p, table, pref):
 
 
 def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
+	''' Given the transposed summed preferance matrix, the current person,
+		the unseated table, number of people, and boolean value of opposite,
+		get the top 40% of optimal choices to place next to that person.
+		If the optimal choices are not also in the unseated list, then 
+		select the most optimal choice from everyone in the unseated.
+	'''
 	percent = int(num_p * .4)	
 	#print("-------------------------------------------------")
 
@@ -322,6 +333,14 @@ def place_bot_and_side(pref, cur_per, unseated, num_p, opp):
 
 
 def place_corner(pref, cur1, cur2, unseated, num_p):
+	''' Given the summed transposed preferance matrix, the person to the top right (cur1),
+		the person below (cur2), a list of the unseated people, and the total number of people,
+		identify the top 40 percent of cur1 and cur2. See if they have any overlap and if 
+		those people are also in the unseated list of people. If they are, randomly select
+		one of the remaining optimal solutions. Otherwise, if there is no overlap, then
+		look through the whole list of unseated people looking for an optimal person to place
+		between cur1 and cur2.
+	'''
 
 	percent = int(num_p * .4)	
 
