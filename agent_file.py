@@ -1,4 +1,6 @@
-# File made just for additional agents
+# Local Search Agent file
+# Name: Jordan Le
+# Date: 10-23-19
 
 import numpy as np
 import random as rand
