@@ -109,7 +109,7 @@ def main(cmd_args):
     high_score = 0                                      # Initialize my score. It better be better than 0
     fin_table_seats = np.zeros((2, int(num_p/2)))       # Initialize empty table
     states = []                                         # Initialize states - may remove
-    time_left = 60                                      # Set time to 60 seconds
+    time_left = 5                                      # Set time to 60 seconds
     start_time = time.time()                            # Start the time
 
     while time.time() < start_time + time_left:         # Loop while in 60 seconds
@@ -121,30 +121,14 @@ def main(cmd_args):
         elif "-greed" in cmd_args:
             s_table = agent_3(num_p, table_seats, pref_summed)  # Greedy seated table
         
-        '''
-        state = np.reshape(s_table, (1,-1))                     # Create 1d state from s_table
-
-        # Need at least one state to compare to
-        if len(states) == 0:
-            states.append(state[0])
-
-        # If the state doesn't exists in the states, len will be 0
-        if len(np.where((states == state).all(axis=1))[0]) == 0:
-            states.append(state[0])                                 # Add the state 
-            table_score = score_fast(s_table, pref_summed, num_p)   # Faster table scoring
-        
-            if table_score > high_score:                            # Check for new high score
-                high_score = table_score                            # Update highest score
-                fin_table_seats = s_table                           # Save table configuation
-                print("Current Highest Table Score: ", high_score)  # Display current highest
-        '''
-
-        table_score = score_fast(s_table, pref_summed, num_p)   # Faster table scoring
-        if table_score > high_score:                            # Check for new high score
-            high_score = table_score                            # Update highest score
-            fin_table_seats = s_table                           # Save table configuation
+        # Get the best from the optimized random placement
+        sub_high, sub_fin_tab = af.local_search(s_table, pref_summed, num_p)
+        if sub_high > high_score:
+            high_score = sub_high
+            fin_table_seats = sub_fin_tab
             print("Current Highest Table Score: ", high_score)  # Display current highest
-    print("Number of Unique States: ", len(states))                 # Show number of unique states - may remove
+            print(fin_table_seats)
+    
     display_scores(high_score, fin_table_seats, num_p, soln_file)   # Output of final seated table score and text file
 
 
