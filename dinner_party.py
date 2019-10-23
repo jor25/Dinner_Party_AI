@@ -110,7 +110,7 @@ def main(cmd_args):
     high_score = 0                                      # Initialize my score. It better be better than 0
     fin_table_seats = np.zeros((2, int(num_p/2)))       # Initialize empty table
     states = []                                         # Initialize states - may remove
-    time_left = 5                                      # Set time to 60 seconds
+    time_left = 60                                      # Set time to 60 seconds
     start_time = time.time()                            # Start the time
 
     while time.time() < start_time + time_left:         # Loop while in 60 seconds

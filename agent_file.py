@@ -46,9 +46,11 @@ def local_search(s_table, pref_summed, num_p):
 
                 if temp_score > sub_highest:        # If higher score, do updates
                     sub_highest = temp_score        # Update the sub highest score
-                    sub_fin_table = s_table         # Update sub final table
-                    break                           # Either break or look for optimal...
+                    sub_fin_table = s_table.copy()  # Update sub final table
+                    #break                          # Either break or look for optimal...
+                    swap(cord_j, cord_i, s_table)   # Swap it back, no improvement
                 else:           
                     swap(cord_j, cord_i, s_table)   # Swap it back, no improvement
 
+        s_table = sub_fin_table         # Set the table to the best change from j loops
     return sub_highest, sub_fin_table   # Give back the best from sub optimizations
