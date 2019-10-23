@@ -41,7 +41,6 @@ def read_data(data_file="data_insts/hw1-inst1.txt"):
         ndarray data
         int num_p
     '''
-    
     # Numpy read in my data - separate by space, skip row 1, all ints.  
     data = np.loadtxt(data_file, delimiter=" ", skiprows=1, dtype=int)
     num_p = len(data)
@@ -57,10 +56,10 @@ def display_scores(score, table, num_p, out_file="soln_insts/hw1-soln1.txt"):
         The text file will contain the correct format for grading.
         Note: Everyone will start at 1.
     ''' 
-    fout = open(out_file, "w")      # Output file
-    line = "Table Score: {}".format(score)  # Standard line to write to file
-    print(line)             # Display line
-    fout.write(line + "\n")         # Write to the file
+    fout = open(out_file, "w")                  # Output file
+    line = "Table Score: {}".format(score)      # Standard line to write to file
+    print(line)                                 # Display line
+    fout.write(line + "\n")                     # Write to the file
 
     count = 1       # Initialize a count at one
     
@@ -69,9 +68,9 @@ def display_scores(score, table, num_p, out_file="soln_insts/hw1-soln1.txt"):
         for j in range (int(num_p/2)):
             # Display current index, person + 1 because I like my zero indeces
             line = "p{} s{}".format(int(table[i][j]) + 1, count)    # Person num & Seat num
-            print(line)                     # Display line
-            fout.write(line + "\n")                 # Write to the file
-            count += 1                      # Increment count
+            print(line)                                             # Display line
+            fout.write(line + "\n")                                 # Write to the file
+            count += 1                                              # Increment count
     
     fout.close()    # Close the file
     print(table)    # Display the table for me, not grading
@@ -103,15 +102,15 @@ def main(cmd_args):
         soln_file = "soln_insts/hw1-soln1.txt".format(inst[5])  # Set default
 
     # Transpose matrix for simplified calculation
-    tran_pref = np.transpose(pref)                  # Transpose the matrix
-    pref_summed = np.add(pref, tran_pref)           # Element wise sum to save calculation later
+    tran_pref = np.transpose(pref)                      # Transpose the matrix
+    pref_summed = np.add(pref, tran_pref)               # Element wise sum to save calculation later
 
     # Initialize variables and time
-    high_score = 0                                  # Initialize my score. It better be better than 0
-    fin_table_seats = np.zeros((2, int(num_p/2)))   # Initialize empty table
-    states = []                                     # Initialize states - may remove
-    time_left = 60                                  # Set time to 60 seconds
-    start_time = time.time()                        # Start the time
+    high_score = 0                                      # Initialize my score. It better be better than 0
+    fin_table_seats = np.zeros((2, int(num_p/2)))       # Initialize empty table
+    states = []                                         # Initialize states - may remove
+    time_left = 60                                      # Set time to 60 seconds
+    start_time = time.time()                            # Start the time
 
     while time.time() < start_time + time_left:         # Loop while in 60 seconds
         table_seats = np.zeros((2, int(num_p/2)))       # Table
