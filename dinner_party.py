@@ -120,7 +120,8 @@ def main(cmd_args):
 
         elif "-greed" in cmd_args:
             s_table = agent_3(num_p, table_seats, pref_summed)  # Greedy seated table
-    
+        
+        '''
         state = np.reshape(s_table, (1,-1))                     # Create 1d state from s_table
 
         # Need at least one state to compare to
@@ -136,7 +137,13 @@ def main(cmd_args):
                 high_score = table_score                            # Update highest score
                 fin_table_seats = s_table                           # Save table configuation
                 print("Current Highest Table Score: ", high_score)  # Display current highest
+        '''
 
+        table_score = score_fast(s_table, pref_summed, num_p)   # Faster table scoring
+        if table_score > high_score:                            # Check for new high score
+            high_score = table_score                            # Update highest score
+            fin_table_seats = s_table                           # Save table configuation
+            print("Current Highest Table Score: ", high_score)  # Display current highest
     print("Number of Unique States: ", len(states))                 # Show number of unique states - may remove
     display_scores(high_score, fin_table_seats, num_p, soln_file)   # Output of final seated table score and text file
 
