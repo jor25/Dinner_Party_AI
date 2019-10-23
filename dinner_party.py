@@ -57,19 +57,20 @@ def display_scores(score, table, num_p, out_file="soln_insts/hw1-soln1.txt"):
         Note: Everyone will start at 1.
     ''' 
     fout = open(out_file, "w")                  # Output file
-    line = "Table Score: {}".format(score)      # Standard line to write to file
+    line = "Table Score: {}".format(score)      # Standard out line to display on screen
     print(line)                                 # Display line
-    fout.write(line + "\n")                     # Write to the file
+    txt_line = "{}".format(score)               # Line to write to text file
+    fout.write(txt_line + "\n")                 # Write txt_line to the file
 
     count = 1       # Initialize a count at one
     
     # Loop through the table and display as required
     for i in range(2):
         for j in range (int(num_p/2)):
-            # Display current index, person + 1 because I like my zero indeces
-            line = "p{} s{}".format(int(table[i][j]) + 1, count)    # Person num & Seat num
-            print(line)                                             # Display line
-            fout.write(line + "\n")                                 # Write to the file
+            line = "p{} s{}".format(int(table[i][j]), count)        # Output line for person num & seat num
+            print(line)                                             # Display output line
+            txt_line = "{} {}".format(int(table[i][j]) + 1, count)  # Person num & Seat num for text file index 1
+            fout.write(txt_line + "\n")                             # Write txt_line to the file
             count += 1                                              # Increment count
     
     fout.close()    # Close the file
@@ -123,11 +124,11 @@ def main(cmd_args):
         
         # Get the best from the optimized random placement
         sub_high, sub_fin_tab = af.local_search(s_table, pref_summed, num_p)
-        if sub_high > high_score:
-            high_score = sub_high
-            fin_table_seats = sub_fin_tab
-            print("Current Highest Table Score: ", high_score)  # Display current highest
-            print(fin_table_seats)
+        if sub_high > high_score:                                   # If higher score, update
+            high_score = sub_high                                   # Update high score
+            fin_table_seats = sub_fin_tab                           # Update final table
+            print("Current Highest Table Score: ", high_score)      # Display current highest
+            print(fin_table_seats)                                  # Display the table 
     
     display_scores(high_score, fin_table_seats, num_p, soln_file)   # Output of final seated table score and text file
 
