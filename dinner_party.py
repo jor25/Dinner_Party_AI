@@ -1,14 +1,14 @@
 # Artificial Intelligence: Dinner Party
 ''' Given a set of n people (n is even), they will be sat on
-        two sides of a long table.
+    two sides of a long table.
 
-            o       o       o            o
+        o   o   o         o
      +-------------     ----+
-     |                       ...        | 
+     |              ...     | 
      +-------------     ----+ 
-            o       o       o            o
+        o   o   o         o
 
-        Half are "hosts" half are "guests".
+    Half are "hosts" half are "guests".
 '''
 # Name: Jordan Le
 # Date: 10-5-19
@@ -120,7 +120,7 @@ def main(cmd_args):
             s_table = rand_agent(num_p, table_seats)            # Random seated table
 
         elif "-greed" in cmd_args:
-            s_table = agent_3(num_p, table_seats, pref_summed)  # Greedy seated table
+            s_table = greedy_init(num_p, table_seats, pref_summed)  # Greedy seated table
         
         # Get the best from the optimized random placement
         sub_high, sub_fin_tab = af.local_search(s_table, pref_summed, num_p)
@@ -154,7 +154,7 @@ def rand_agent(num_p, table):
     
 
 # Agent Algorithm 3
-def agent_3(num_p, table, pref):
+def greedy_init(num_p, table, pref):
     ''' Agent that takes the greedy approach and attempts to optimize early
         in the seating arrangement. It does this with a depth first local search 
         containing a greedy heuristic. This method includes random restarts 
