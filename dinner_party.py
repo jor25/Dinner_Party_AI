@@ -13,17 +13,23 @@
 # Name: Jordan Le
 # Date: 10-5-19
 # Description: Project working with state spaces. Attempting to reach maximum table score.
-# Note: Final output data for each instance will be in the inst_out directory.
+# Note: Final output data for each instance will be in the soln_insts directory.
 #       All additional output is not particularly for grading.
 
-# Run with "python3 dinner_party.py -<agent> -<inst#>"
-#   Available Agents: -rand   -greedy -final
+# For Grading Run the following:
+#   "make run_inst1"
+#   "make run_inst2"
+#   "make run_inst3"
+
+# Run with "python3 dinner_party.py -<init> -<inst#>"
+#   Available inits: -rand   -greedy
 #   Available insts:  -inst1  -inst2  -inst3
 
 # Installs "pip3 install <package>"
 
 # Resources:
 #   - https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html
+#   - https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.add.html
 #   - https://docs.scipy.org/doc/numpy/reference/generated/numpy.isin.html
 #   - https://stackoverflow.com/questions/25823608/find-matching-rows-in-2-dimensional-numpy-array
 
